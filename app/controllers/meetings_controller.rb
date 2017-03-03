@@ -36,6 +36,43 @@ class MeetingsController < ApplicationController
     end
   end
 
+  def edit
+    @meeting = Meeting.find_by(id: params[:id])
+    @tags = Tag.all
+  end
+
+  def update
+    @meeting = Meeting.find_by(id: params[:id])
+    @meeting.assign_attributes(
+                              name: params[:name],
+                              address: params[:address],
+                              start_time: params[:start_time],
+                              end_time: params[:end_time],
+                              notes: params[:notes]
+                              )
+
+    if @meeting.save
+      @meeting.meeting_tags.destroy_all
+      tag_ids = params[:tags]
+
+      if tag_ids
+        tag_ids.each do |tag_id|
+        MeetingTag.create(
+                          meeting_id: @meeting.id,
+                          tag_id: tag_id
+                          )
+      end
+
+      flash[:success] = "Meeting successfully updated!"
+      redirect_to "/meetings/#{@meeting.id}"
+
+    else
+      @tags = Tag.all
+      render :edit
+    end
+  end
+end
+
   def show
     @meeting = Meeting.find_by(id: params[:id])
   end
